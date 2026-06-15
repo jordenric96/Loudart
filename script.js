@@ -1,246 +1,166 @@
-// --- SPEL STATUS ---
 let targetScore = 30;
 let players = [];
 let currentPlayerIndex = 0;
 let dartsThrownThisTurn = 0;
 const MAX_DARTS = 3;
-let history = []; // Slaat beurten op voor de Undo (Oeps) knop
+let history = []; 
 
-// --- DOM ELEMENTEN ---
-const screens = {
-    setup: document.getElementById('setup-screen'),
-    game: document.getElementById('game-screen'),
-    winner: document.getElementById('winner-screen')
-};
-
-const setupBtn = document.getElementById('start-btn');
-const extraCb = document.getElementById('extra-cb');
-const extraName = document.getElementById('extra-name');
-const errorMsg = document.getElementById('error-msg');
-const checkboxes = document.querySelectorAll('.player-cb');
-
-const playersListDiv = document.getElementById('players-list');
-const targetDisplay = document.getElementById('target-display');
-const currentPlayerNameSpan = document.getElementById('current-player-name');
-const dartIcons = [
-    document.getElementById('dart1'),
-    document.getElementById('dart2'),
-    document.getElementById('dart3')
-];
-
-// --- EVENT LISTENERS ---
-setupBtn.addEventListener('click', startGame);
-
-extraName.addEventListener('input', () => {
-    if(extraName.value.trim() !== '') extraCb.checked = true;
-    else extraCb.checked = false;
-});
-
-document.querySelectorAll('.target-btn').forEach(btn => {
-    btn.addEventListener('click', () => handleScore(parseInt(btn.getAttribute('data-points'))));
-});
-
-document.getElementById('miss-btn').addEventListener('click', () => handleScore(0));
-document.getElementById('undo-btn').addEventListener('click', undoLastThrow);
-document.getElementById('restart-btn').addEventListener('click', resetToSetup);
-
-// --- FUNCTIES ---
-
-function switchScreen(screenName) {
-    Object.values(screens).forEach(s => s.classList.remove('active'));
-    screens[screenName].classList.add('active');
+// NATIVE AUDIO ENGINE (Geen MP3's nodig!)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    
+    if (type === 'hit') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); 
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    } else if (type === 'miss') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'win') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination); o.frequency.value = freq;
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime + idx*0.1);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx*0.1 + 0.3);
+            o.start(audioCtx.currentTime + idx*0.1); o.stop(audioCtx.currentTime + idx*0.1 + 0.3);
+        });
+    }
 }
 
-function startGame() {
-    targetScore = parseInt(document.getElementById('target-score').value) || 30;
-    
+// SETUP LOGIC
+const targetInput = document.getElementById('target-score');
+function adjustTarget(amount) {
+    let current = parseInt(targetInput.value) + amount;
+    if (current < 10) current = 10;
+    if (current > 200) current = 200;
+    targetInput.value = current;
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    targetScore = parseInt(targetInput.value) || 30;
     players = [];
-    checkboxes.forEach(cb => {
+    document.querySelectorAll('.player-cb').forEach(cb => {
         if (cb.checked) {
-            let name = cb.value;
-            if (cb.id === 'extra-cb') name = extraName.value.trim() || 'Speler 4';
-            players.push({ name: name, score: 0 });
+            let name = cb.value; let avatar = '🧑';
+            if (cb.id === 'extra-cb') { name = document.getElementById('extra-name').value || 'Gast'; avatar = '🌟'; }
+            else if (name === 'Lou') avatar = '🦖'; else if (name === 'Mama') avatar = '👩‍🦰'; else if (name === 'Papa') avatar = '👨‍🦱';
+            players.push({ name: name, score: 0, avatar: avatar });
         }
     });
+    if(players.length === 0) return;
+    currentPlayerIndex = 0; dartsThrownThisTurn = 0; history = [];
+    document.getElementById('target-display').textContent = `${targetScore} PT`;
+    buildRacetracks(); updateTurnUI(); switchScreen('game');
+});
 
-    if (players.length === 0) {
-        errorMsg.textContent = "Kies minstens 1 speler!";
-        return;
-    }
-    if (players.length > 4) {
-        errorMsg.textContent = "Maximaal 4 spelers toegestaan!";
-        return;
-    }
-
-    errorMsg.textContent = "";
-    currentPlayerIndex = 0;
-    dartsThrownThisTurn = 0;
-    history = [];
-    
-    targetDisplay.textContent = `(Tot ${targetScore} pt)`;
-    buildScoreboard();
-    updateTurnUI();
-    switchScreen('game');
+// UI BUILDER
+function buildRacetracks() {
+    const container = document.getElementById('players-tracks-container');
+    container.innerHTML = '';
+    players.forEach((p, idx) => {
+        container.innerHTML += `
+            <div class="race-row" id="race-row-${idx}">
+                <div class="race-info"><span>${p.avatar} ${p.name}</span> <span id="score-val-${idx}" class="score-val">0 / ${targetScore}</span></div>
+                <div class="track-line">
+                    <div class="track-progress-fill" id="fill-${idx}"></div>
+                    <div class="moving-arrow" id="arrow-${idx}">${p.avatar}</div>
+                    <div class="fixed-board">🎯</div>
+                </div>
+            </div>`;
+    });
 }
 
-function buildScoreboard() {
-    playersListDiv.innerHTML = '';
-    
-    const getAvatar = (name) => {
-        let n = name.toLowerCase();
-        if(n.includes('lou')) return '🦖';
-        if(n.includes('mama')) return '👩';
-        if(n.includes('papa')) return '👨';
-        return '🧑';
-    };
-
-    players.forEach((p, index) => {
-        const row = document.createElement('div');
-        row.className = `player-row ${index === currentPlayerIndex ? 'active-player' : ''}`;
-        row.id = `player-row-${index}`;
+// GAMEPLAY ACTIONS
+document.querySelectorAll('.char-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+        const pts = parseInt(card.getAttribute('data-points'));
+        const color = card.getAttribute('data-color');
         
-        row.innerHTML = `
-            <div class="player-info">
-                <span>${getAvatar(p.name)} ${p.name}</span>
-                <span id="score-text-${index}">0 pt</span>
-            </div>
-            <div class="track-container">
-                <div class="track-fill" id="track-fill-${index}"></div>
-                <div class="progress-arrow" id="arrow-${index}">🏹</div>
-                <div class="dartboard-target">🎯</div>
-            </div>
-        `;
-        playersListDiv.appendChild(row);
+        // Zwevende score animatie
+        const el = document.createElement('div');
+        el.className = 'floating-score'; el.textContent = `+${pts}`;
+        el.style.left = `${e.clientX - 20}px`; el.style.top = `${e.clientY - 40}px`; el.style.color = color;
+        document.getElementById('floating-score-container').appendChild(el);
+        setTimeout(() => el.remove(), 800);
+
+        handleScore(pts);
     });
+});
+
+document.getElementById('miss-btn').addEventListener('click', () => { playSound('miss'); handleScore(0); });
+document.getElementById('undo-btn').addEventListener('click', () => {
+    if (history.length === 0) return;
+    const last = history.pop();
+    currentPlayerIndex = last.playerIndex; dartsThrownThisTurn = last.dartsThrownBefore;
+    players[currentPlayerIndex].score -= last.pointsAdded;
+    if(players[currentPlayerIndex].score < 0) players[currentPlayerIndex].score = 0;
+    updateTrackProgress(currentPlayerIndex); updateTurnUI();
+});
+document.getElementById('restart-btn').addEventListener('click', () => switchScreen('setup'));
+
+function handleScore(pts) {
+    if(pts > 0) playSound('hit');
+    const cp = players[currentPlayerIndex];
+    history.push({ playerIndex: currentPlayerIndex, pointsAdded: pts, dartsThrownBefore: dartsThrownThisTurn });
+    cp.score += pts;
+    updateTrackProgress(currentPlayerIndex);
+
+    if (cp.score >= targetScore) return setTimeout(() => triggerVictory(cp), 300);
+
+    dartsThrownThisTurn++;
+    if (dartsThrownThisTurn >= MAX_DARTS) { dartsThrownThisTurn = 0; currentPlayerIndex = (currentPlayerIndex + 1) % players.length; }
+    updateTurnUI();
+}
+
+function updateTrackProgress(idx) {
+    const p = players[idx];
+    document.getElementById(`score-val-${idx}`).textContent = `${p.score} / ${targetScore}`;
+    let percent = (p.score / targetScore) * 100; if (percent > 100) percent = 100;
+    document.getElementById(`fill-${idx}`).style.width = `${percent}%`;
+    document.getElementById(`arrow-${idx}`).style.left = `${percent * 0.92}%`;
 }
 
 function updateTurnUI() {
-    document.querySelectorAll('.player-row').forEach((row, idx) => {
-        row.classList.toggle('active-player', idx === currentPlayerIndex);
-    });
-    
-    currentPlayerNameSpan.textContent = players[currentPlayerIndex].name;
-    
-    // Update de 3 fysieke dart-icoontjes op het scherm
-    dartIcons.forEach((icon, idx) => {
-        if (idx >= dartsThrownThisTurn) icon.classList.add('active');
-        else icon.classList.remove('active');
-    });
+    players.forEach((_, idx) => document.getElementById(`race-row-${idx}`).classList.toggle('active-turn', idx === currentPlayerIndex));
+    const cp = players[currentPlayerIndex];
+    document.getElementById('current-player-name').textContent = cp.name;
+    document.getElementById('current-avatar').textContent = cp.avatar;
+    for (let i = 1; i <= MAX_DARTS; i++) document.getElementById(`dart${i}`).classList.toggle('active', i > dartsThrownThisTurn);
 }
 
-function updatePlayerProgress(playerIndex) {
-    const p = players[playerIndex];
-    document.getElementById(`score-text-${playerIndex}`).textContent = `${p.score} pt`;
-    
-    let percent = (p.score / targetScore) * 100;
-    if (percent > 100) percent = 100;
-    
-    // Houd de pijl net voor het dartbordje aan het einde
-    let arrowPercent = percent * 0.92; 
-    
-    document.getElementById(`track-fill-${playerIndex}`).style.width = `${percent}%`;
-    document.getElementById(`arrow-${playerIndex}`).style.left = `${arrowPercent}%`;
+function triggerVictory(winner) {
+    playSound('win');
+    document.getElementById('winner-name').textContent = `${winner.name} IS DE KAMPIOEN! 🏆`;
+    document.getElementById('winner-avatar').textContent = winner.avatar;
+    switchScreen('winner'); fireConfetti();
 }
 
-function handleScore(points) {
-    const p = players[currentPlayerIndex];
-    
-    history.push({
-        playerIndex: currentPlayerIndex,
-        pointsAdded: points,
-        dartsThrownBefore: dartsThrownThisTurn
-    });
-    
-    p.score += points;
-    updatePlayerProgress(currentPlayerIndex);
-    
-    if (p.score >= targetScore) {
-        setTimeout(() => triggerWin(p.name), 400);
-        return;
-    }
-    
-    dartsThrownThisTurn++;
-    if (dartsThrownThisTurn >= MAX_DARTS) {
-        dartsThrownThisTurn = 0;
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-    }
-    
-    updateTurnUI();
-}
+function switchScreen(name) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(`${name}-screen`).classList.add('active'); }
 
-function undoLastThrow() {
-    if (history.length === 0) return;
-    
-    const lastAction = history.pop();
-    currentPlayerIndex = lastAction.playerIndex;
-    dartsThrownThisTurn = lastAction.dartsThrownBefore;
-    
-    players[currentPlayerIndex].score -= lastAction.pointsAdded;
-    if (players[currentPlayerIndex].score < 0) players[currentPlayerIndex].score = 0;
-    
-    updatePlayerProgress(currentPlayerIndex);
-    updateTurnUI();
-}
-
-function triggerWin(winnerName) {
-    document.getElementById('winner-name').textContent = `${winnerName} is de kampioen!`;
-    switchScreen('winner');
-    fireConfetti();
-}
-
-function resetToSetup() {
-    switchScreen('setup');
-    const canvas = document.getElementById('confetti-canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-// --- VISUEEL: CONFETTI GENERATOR ---
 function fireConfetti() {
-    const canvas = document.getElementById('confetti-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    const pieces = [];
-    const colors = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#4CAF50', '#FFEB3B', '#FF9800'];
-    
-    for (let i = 0; i < 150; i++) {
-        pieces.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            w: Math.random() * 10 + 6,
-            h: Math.random() * 10 + 6,
-            c: colors[Math.floor(Math.random() * colors.length)],
-            dy: Math.random() * 4 + 3,
-            dx: Math.random() * 4 - 2,
-            rot: Math.random() * 360,
-            dRot: Math.random() * 4 - 2
+    const cvs = document.getElementById('confetti-canvas'), ctx = cvs.getContext('2d');
+    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+    const pts = [], cols = ['#f44336', '#e91e63', '#2196f3', '#4CAF50', '#FFEB3B', '#FF9800'];
+    for(let i=0;i<150;i++) pts.push({ x: Math.random()*cvs.width, y: Math.random()*cvs.height - cvs.height, w: Math.random()*12+6, h: Math.random()*12+6, c: cols[Math.floor(Math.random()*cols.length)], dy: Math.random()*5+4, dx: Math.random()*4-2, rot: Math.random()*360, rotS: Math.random()*4-2 });
+    function render() {
+        if (!document.getElementById('winner-screen').classList.contains('active')) return;
+        ctx.clearRect(0,0,cvs.width,cvs.height);
+        pts.forEach(p => {
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillStyle = p.c; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore();
+            p.y += p.dy; p.x += p.dx; p.rot += p.rotS;
+            if (p.y > cvs.height) { p.y = -10; p.x = Math.random()*cvs.width; }
         });
+        requestAnimationFrame(render);
     }
-    
-    function draw() {
-        if (!screens.winner.classList.contains('active')) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        pieces.forEach(p => {
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rot * Math.PI / 180);
-            ctx.fillStyle = p.c;
-            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-            ctx.restore();
-            
-            p.y += p.dy;
-            p.x += p.dx;
-            p.rot += p.dRot;
-            
-            if (p.y > canvas.height) {
-                p.y = -10;
-                p.x = Math.random() * canvas.width;
-            }
-        });
-        requestAnimationFrame(draw);
-    }
-    draw();
+    render();
 }
