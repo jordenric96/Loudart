@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <title>Darts App voor Lou 🎯</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="setup-screen" class="screen active">
+        <div class="setup-container">
+            <h1>🎯 Dart Spel Setup 🎯</h1>
+            
+            <div class="setup-section">
+                <label for="target-score">Tot hoeveel punten spelen we?</label>
+                <input type="number" id="target-score" value="30" min="10" max="1000">
+            </div>
+
+            <div class="setup-section">
+                <h3>Wie doet er mee? (Max 4)</h3>
+                <div class="player-checkboxes">
+                    <label class="player-check">
+                        <input type="checkbox" value="Lou" checked class="player-cb"> Lou 🦖
+                    </label>
+                    <label class="player-check">
+                        <input type="checkbox" value="Mama" checked class="player-cb"> Mama 👩
+                    </label>
+                    <label class="player-check">
+                        <input type="checkbox" value="Papa" checked class="player-cb"> Papa 👨
+                    </label>
+                    <label class="player-check extra-player">
+                        <input type="checkbox" id="extra-cb" class="player-cb"> 
+                        <input type="text" id="extra-name" placeholder="Naam toevoegen..." maxlength="12">
+                    </label>
+                </div>
+                <p id="error-msg" class="error"></p>
+            </div>
+
+            <button id="start-btn" class="big-btn primary">Start Spel! 🚀</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="game-layout">
+            
+            <div class="scoreboard-panel">
+                <h2>Tussenstand <span id="target-display"></span></h2>
+                <div id="players-list">
+                    </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="turn-indicator">
+                    <h3>Beurt aan: <span id="current-player-name" class="highlight">Lou</span></h3>
+                    <div class="darts-left">
+                        Pijlen: 
+                        <span id="dart1" class="dart-icon active">🎯</span>
+                        <span id="dart2" class="dart-icon active">🎯</span>
+                        <span id="dart3" class="dart-icon active">🎯</span>
+                    </div>
+                </div>
+
+                <div class="buttons-grid">
+                    <button class="target-btn spiderman" data-points="5" data-name="Spider-Man">
+                        <span class="pts">5</span> Spider-Man
+                    </button>
+                    <button class="target-btn pokemon" data-points="4" data-name="Pokémon">
+                        <span class="pts">4</span> Pokémon
+                    </button>
+                    <button class="target-btn hotwheels" data-points="4" data-name="Hot Wheels">
+                        <span class="pts">4</span> Hot Wheels
+                    </button>
+                    <button class="target-btn sonic" data-points="4" data-name="Sonic">
+                        <span class="pts">4</span> Sonic
+                    </button>
+                    <button class="target-btn belgium" data-points="3" data-name="Rode Duivels">
+                        <span class="pts">3</span> Rode Duivels
+                    </button>
+                    <button class="target-btn bowser" data-points="3" data-name="Bowser">
+                        <span class="pts">3</span> Bowser
+                    </button>
+                    <button class="target-btn robinhood" data-points="3" data-name="Robin Hood">
+                        <span class="pts">3</span> Robin Hood
+                    </button>
+                    <button class="target-btn marioluigi" data-points="2" data-name="Mario & Luigi">
+                        <span class="pts">2</span> Mario & Luigi
+                    </button>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="miss-btn" class="big-btn miss">Mis! (0)</button>
+                    <button id="undo-btn" class="big-btn undo">↩️ Oeps (Terug)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="winner-screen" class="screen">
+        <div class="winner-container">
+            <h1 class="winner-title">🎉 GEWONNEN! 🎉</h1>
+            <h2 id="winner-name">Lou is de kampioen!</h2>
+            <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3c6/512.gif" alt="Trophy" width="150" height="150">
+            <button id="restart-btn" class="big-btn primary">Nog een keertje! 🔄</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
