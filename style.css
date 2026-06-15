@@ -1,0 +1,365 @@
+:root {
+    --bg-color: #f0f8ff;
+    --panel-bg: #ffffff;
+    --text-color: #2b2d42;
+    
+    /* Kleuren exact gebaseerd op de randen van je foto */
+    --c-spiderman: #3b82f6; 
+    --c-pokemon: #eab308;
+    --c-hotwheels: #2563eb;
+    --c-sonic: #1d4ed8;
+    --c-robinhood: #facc15;
+    --c-bowser: #dc2626;
+    --c-belgium: #991b1b;
+    --c-marioluigi: #16a34a;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Baloo 2', cursive, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden; /* Voorkomt scrollen op tablets voor app-gevoel */
+    touch-action: manipulation; /* Voorkomt dubbel-tik zoom op tablets */
+}
+
+.screen {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+}
+.screen.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* ================= SETUP SCHERM ================= */
+.setup-container {
+    background: var(--panel-bg);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+}
+
+.setup-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #ff5400;
+}
+
+.setup-section {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+#target-score {
+    font-size: 1.5rem;
+    width: 100px;
+    text-align: center;
+    padding: 5px;
+    border: 3px solid #ccc;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+.player-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.player-check {
+    background: #f1f5f9;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.player-check:has(input:checked) {
+    background: #e0f2fe;
+    border-color: #38bdf8;
+    font-weight: bold;
+}
+
+.player-cb {
+    width: 20px;
+    height: 20px;
+}
+
+#extra-name {
+    font-size: 1.1rem;
+    border: none;
+    background: transparent;
+    border-bottom: 2px solid #ccc;
+    width: 140px;
+    outline: none;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    height: 20px;
+    margin-top: 10px;
+}
+
+.big-btn {
+    font-size: 1.5rem;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.big-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.primary {
+    background: linear-gradient(135deg, #ff9e00, #ff5400);
+    color: white;
+}
+
+/* ================= GAME SCHERM (HORIZONTAL LAYOUT) ================= */
+.game-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    gap: 15px;
+}
+
+/* Scorebord Links */
+.scoreboard-panel {
+    flex: 1;
+    background: var(--panel-bg);
+    border-radius: 20px;
+    padding: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.scoreboard-panel h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #475569;
+}
+
+#players-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+/* Visuele Lijn met de Pijl */
+.player-row {
+    padding: 10px;
+    border-radius: 15px;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+}
+.player-row.active-player {
+    border-color: #ff5400;
+    background: #fff7ed;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.track-container {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.track-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    border-radius: 20px;
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-row.active-player .track-fill {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+
+.progress-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    left: 0%;
+    z-index: 2;
+    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+}
+
+.dartboard-target {
+    position: absolute;
+    right: -5px;
+    font-size: 35px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+}
+
+/* Bedieningspaneel Rechts */
+.controls-panel {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.turn-indicator {
+    background: var(--panel-bg);
+    border-radius: 15px;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.turn-indicator h3 {
+    font-size: 1.5rem;
+}
+
+.highlight {
+    color: #ff5400;
+    font-size: 1.8rem;
+}
+
+.dart-icon {
+    font-size: 1.5rem;
+    opacity: 0.2;
+    transition: opacity 0.3s;
+}
+.dart-icon.active {
+    opacity: 1;
+}
+
+/* Knoppen Grid */
+.buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    flex: 1;
+}
+
+.target-btn {
+    border: none;
+    border-radius: 20px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 0px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, box-shadow 0.1s;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.target-btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 0px 0px rgba(0,0,0,0.2);
+}
+
+.pts {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 3px;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 15px;
+    border-radius: 15px;
+}
+
+/* Specifieke randen en kleuren op basis van je bord */
+.spiderman { background: var(--c-spiderman); border: 4px solid #ef4444; }
+.pokemon { background: var(--c-pokemon); color: #854d0e; }
+.hotwheels { background: var(--c-hotwheels); }
+.sonic { background: var(--c-sonic); }
+.robinhood { background: var(--c-robinhood); color: #854d0e; }
+.bowser { background: var(--c-bowser); }
+.belgium { background: var(--c-belgium); border: 4px solid #facc15; }
+.marioluigi { background: var(--c-marioluigi); border: 4px solid #ef4444; }
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    height: 70px;
+}
+
+.miss { background: #64748b; color: white; flex: 1; }
+.undo { background: #f87171; color: white; flex: 1; }
+
+/* ================= WINNAAR SCHERM ================= */
+.winner-container {
+    text-align: center;
+    background: var(--panel-bg);
+    padding: 3rem;
+    border-radius: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.winner-title {
+    font-size: 3rem;
+    color: #fbbf24;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 0px #d97706;
+}
+
+#winner-name {
+    font-size: 2.5rem;
+    color: #ff5400;
+    margin-bottom: 2rem;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
