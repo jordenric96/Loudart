@@ -1,365 +1,94 @@
 :root {
-    --bg-color: #f0f8ff;
-    --panel-bg: #ffffff;
-    --text-color: #2b2d42;
-    
-    /* Kleuren exact gebaseerd op de randen van je foto */
-    --c-spiderman: #3b82f6; 
-    --c-pokemon: #eab308;
-    --c-hotwheels: #2563eb;
-    --c-sonic: #1d4ed8;
-    --c-robinhood: #facc15;
-    --c-bowser: #dc2626;
-    --c-belgium: #991b1b;
-    --c-marioluigi: #16a34a;
+    --bg-dark: #0f172a;
+    --panel-dark: #1e293b;
+    --accent-neon: #38bdf8;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Baloo 2', cursive, sans-serif;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Baloo 2', cursive; user-select: none; }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    overflow: hidden; /* Voorkomt scrollen op tablets voor app-gevoel */
-    touch-action: manipulation; /* Voorkomt dubbel-tik zoom op tablets */
+    background-color: var(--bg-dark); color: #f8fafc;
+    overflow: hidden; height: 100vh; width: 100vw;
 }
 
-.screen {
-    display: none;
-    width: 100vw;
-    height: 100vh;
-}
-.screen.active {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+.screen { display: none; padding: 20px; height: 100vh; }
+.screen.active { display: flex; justify-content: center; align-items: center; }
 
-#confetti-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 100;
+/* Knoppen & Effecten */
+.arcade-btn {
+    font-family: 'Luckiest Guy', cursive; font-size: 1.8rem;
+    padding: 15px 40px; border: none; border-radius: 50px;
+    cursor: pointer; box-shadow: 0 8px 0 #b43500;
 }
+.primary-btn { background: linear-gradient(135deg, #ff7300, #ff4500); color: white; }
+.arcade-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #b43500; }
 
-/* ================= SETUP SCHERM ================= */
+.animate-pop { animation: popEffect 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes popEffect { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* SETUP SCHERM */
 .setup-container {
-    background: var(--panel-bg);
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    text-align: center;
-    width: 90%;
-    max-width: 600px;
+    background: var(--panel-dark); border: 4px solid var(--accent-neon);
+    border-radius: 32px; padding: 30px; text-align: center;
 }
+.arcade-title { font-family: 'Luckiest Guy'; font-size: 2.8rem; color: #ff9e00; text-shadow: 3px 3px 0px #b45309; }
+.score-selector { display: flex; gap: 15px; justify-content: center; }
+.score-adjust { width: 50px; height: 50px; font-size: 2rem; background: #ff5400; color: white; border: none; border-radius: 15px; cursor: pointer; }
+#target-score { background: #0f172a; color: white; font-size: 2rem; width: 100px; text-align: center; font-family: 'Luckiest Guy'; border-radius: 15px; border: 2px solid var(--accent-neon); }
+.player-grid { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+.player-tile input { opacity: 0; position: absolute; }
+.tile-content { background: #334155; padding: 15px; border-radius: 20px; display: flex; flex-direction: column; cursor: pointer; border: 3px solid transparent; box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
+.player-tile input:checked + .tile-content { background: #0284c7; border-color: #38bdf8; transform: translateY(-4px); box-shadow: 0 10px 0 rgba(2, 132, 199, 0.4); }
 
-.setup-container h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    color: #ff5400;
-}
+/* GAME LAYOUT */
+.game-layout { display: flex; width: 100%; gap: 20px; }
+.sidebar-panel { flex: 1; background: var(--panel-dark); border-radius: 28px; padding: 20px; }
+.main-game-panel { flex: 1.3; display: flex; flex-direction: column; gap: 15px; }
 
-.setup-section {
-    margin-bottom: 1.5rem;
-    font-size: 1.2rem;
-}
+/* RACETRACKS */
+.race-row { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 12px; margin-bottom: 10px; position: relative; border: 3px solid transparent; }
+.race-row.active-turn { border-color: var(--accent-neon); background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56,189,248,0.3); }
+.race-info { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: bold; }
+.score-val { font-family: 'Luckiest Guy'; color: #fbbf24; font-size: 1.4rem; }
+.track-line { position: relative; height: 34px; background: #0f172a; border-radius: 50px; border: 2px solid #475569; }
+.track-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff7300, #fbbf24); border-radius: 50px; transition: width 0.4s; }
+.moving-arrow { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 26px; left: 0%; transition: left 0.4s; z-index: 5; }
+.fixed-board { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 24px; }
 
-#target-score {
-    font-size: 1.5rem;
-    width: 100px;
-    text-align: center;
-    padding: 5px;
-    border: 3px solid #ccc;
-    border-radius: 10px;
-    margin-left: 10px;
-}
+/* RECHTER GAME PANEEL */
+.current-turn-bar { background: var(--panel-dark); padding: 12px 20px; border-radius: 24px; display: flex; justify-content: space-between; border: 2px solid #334155; }
+.active-player-badge { display: flex; gap: 15px; align-items: center; }
+.huge-avatar { font-size: 3rem; animation: bounceAvatar 1s infinite alternate; }
+@keyframes bounceAvatar { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+#current-player-name { font-family: 'Luckiest Guy'; font-size: 2rem; color: var(--accent-neon); }
+.dart-bullet { font-size: 1.6rem; opacity: 0.2; transition: all 0.2s ease; }
+.dart-bullet.active { opacity: 1; transform: scale(1.1); filter: drop-shadow(0 0 5px #ff5400); }
 
-.player-checkboxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 10px;
-}
+/* CHARACTER GRID (PREMIUM CARDS) */
+.character-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; flex: 1; }
+.char-card { background: var(--panel-dark); border: 3px solid #334155; border-radius: 24px; display: flex; align-items: center; padding: 10px 20px; gap: 15px; cursor: pointer; box-shadow: 0 6px 0 #0f172a; transition: transform 0.1s; }
+.char-card:active { transform: translateY(4px); box-shadow: 0 2px 0 #0f172a; }
+.char-icon { font-size: 2.5rem; }
+.char-name { display: block; font-size: 1.2rem; font-weight: 800; color: white; }
+.char-pts { font-family: 'Luckiest Guy'; font-size: 1.5rem; color: var(--accent-neon); }
+.spiderman { border-color: #ef4444; background: linear-gradient(135deg, #1e293b, #1d4ed8); }
+.pokemon { border-color: #eab308; background: linear-gradient(135deg, #1e293b, #854d0e); }
+.hotwheels { border-color: #3b82f6; background: linear-gradient(135deg, #1e293b, #1e3a8a); }
+.sonic { border-color: #2563eb; background: linear-gradient(135deg, #1e293b, #172554); }
+.belgium { border-color: #fbbf24; background: linear-gradient(135deg, #1e293b, #7f1d1d); }
+.bowser { border-color: #ef4444; background: linear-gradient(135deg, #1e293b, #991b1b); }
+.robinhood { border-color: #84cc16; background: linear-gradient(135deg, #1e293b, #3f6212); }
+.marioluigi { border-color: #22c55e; background: linear-gradient(135deg, #1e293b, #14532d); }
 
-.player-check {
-    background: #f1f5f9;
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.2s;
-}
+/* Knoppen & Floats */
+.system-controls { display: flex; gap: 15px; height: 60px; }
+.sys-btn { flex: 1; font-family: 'Luckiest Guy'; font-size: 1.2rem; border-radius: 50px; border: none; cursor: pointer; color: white; }
+.action-miss { background: #475569; box-shadow: 0 5px 0 #334155; }
+.action-undo { background: #ea580c; box-shadow: 0 5px 0 #9a3412; }
 
-.player-check:has(input:checked) {
-    background: #e0f2fe;
-    border-color: #38bdf8;
-    font-weight: bold;
-}
+#confetti-canvas { position: fixed; top: 0; left: 0; z-index: 99; pointer-events: none; }
+.floating-score { position: fixed; font-family: 'Luckiest Guy'; font-size: 4rem; pointer-events: none; z-index: 1000; text-shadow: 3px 3px 0 #000; animation: floatUp 0.8s ease-out forwards; }
+@keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-120px) scale(1.3); opacity: 0; } }
 
-.player-cb {
-    width: 20px;
-    height: 20px;
-}
-
-#extra-name {
-    font-size: 1.1rem;
-    border: none;
-    background: transparent;
-    border-bottom: 2px solid #ccc;
-    width: 140px;
-    outline: none;
-}
-
-.error {
-    color: red;
-    font-weight: bold;
-    height: 20px;
-    margin-top: 10px;
-}
-
-.big-btn {
-    font-size: 1.5rem;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-.big-btn:active {
-    transform: translateY(3px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-.primary {
-    background: linear-gradient(135deg, #ff9e00, #ff5400);
-    color: white;
-}
-
-/* ================= GAME SCHERM (HORIZONTAL LAYOUT) ================= */
-.game-layout {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    padding: 15px;
-    gap: 15px;
-}
-
-/* Scorebord Links */
-.scoreboard-panel {
-    flex: 1;
-    background: var(--panel-bg);
-    border-radius: 20px;
-    padding: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-}
-
-.scoreboard-panel h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #475569;
-}
-
-#players-list {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-}
-
-/* Visuele Lijn met de Pijl */
-.player-row {
-    padding: 10px;
-    border-radius: 15px;
-    border: 3px solid transparent;
-    transition: all 0.3s;
-}
-.player-row.active-player {
-    border-color: #ff5400;
-    background: #fff7ed;
-}
-
-.player-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.track-container {
-    position: relative;
-    width: 100%;
-    height: 40px;
-    background: #e2e8f0;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-}
-
-.track-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #38bdf8, #818cf8);
-    border-radius: 20px;
-    width: 0%;
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.player-row.active-player .track-fill {
-    background: linear-gradient(90deg, #fbbf24, #f59e0b);
-}
-
-.progress-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 28px;
-    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    left: 0%;
-    z-index: 2;
-    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
-}
-
-.dartboard-target {
-    position: absolute;
-    right: -5px;
-    font-size: 35px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 3;
-}
-
-/* Bedieningspaneel Rechts */
-.controls-panel {
-    flex: 1.2;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.turn-indicator {
-    background: var(--panel-bg);
-    border-radius: 15px;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.turn-indicator h3 {
-    font-size: 1.5rem;
-}
-
-.highlight {
-    color: #ff5400;
-    font-size: 1.8rem;
-}
-
-.dart-icon {
-    font-size: 1.5rem;
-    opacity: 0.2;
-    transition: opacity 0.3s;
-}
-.dart-icon.active {
-    opacity: 1;
-}
-
-/* Knoppen Grid */
-.buttons-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    flex: 1;
-}
-
-.target-btn {
-    border: none;
-    border-radius: 20px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 6px 0px rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.1s, box-shadow 0.1s;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-
-.target-btn:active {
-    transform: translateY(6px);
-    box-shadow: 0 0px 0px rgba(0,0,0,0.2);
-}
-
-.pts {
-    font-size: 2rem;
-    line-height: 1;
-    margin-bottom: 3px;
-    background: rgba(255,255,255,0.2);
-    padding: 2px 15px;
-    border-radius: 15px;
-}
-
-/* Specifieke randen en kleuren op basis van je bord */
-.spiderman { background: var(--c-spiderman); border: 4px solid #ef4444; }
-.pokemon { background: var(--c-pokemon); color: #854d0e; }
-.hotwheels { background: var(--c-hotwheels); }
-.sonic { background: var(--c-sonic); }
-.robinhood { background: var(--c-robinhood); color: #854d0e; }
-.bowser { background: var(--c-bowser); }
-.belgium { background: var(--c-belgium); border: 4px solid #facc15; }
-.marioluigi { background: var(--c-marioluigi); border: 4px solid #ef4444; }
-
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    height: 70px;
-}
-
-.miss { background: #64748b; color: white; flex: 1; }
-.undo { background: #f87171; color: white; flex: 1; }
-
-/* ================= WINNAAR SCHERM ================= */
-.winner-container {
-    text-align: center;
-    background: var(--panel-bg);
-    padding: 3rem;
-    border-radius: 30px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.winner-title {
-    font-size: 3rem;
-    color: #fbbf24;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 0px #d97706;
-}
-
-#winner-name {
-    font-size: 2.5rem;
-    color: #ff5400;
-    margin-bottom: 2rem;
-}
-
-@keyframes popIn {
-    0% { transform: scale(0.5); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
+.victory-wrapper { background: var(--panel-dark); border: 6px solid #fbbf24; padding: 40px; border-radius: 40px; text-align: center; box-shadow: 0 0 60px rgba(251,191,36,0.3); }
+.victory-title { font-family: 'Luckiest Guy'; font-size: 3.5rem; color: #fbbf24; text-shadow: 3px 3px 0 #92400e; }
