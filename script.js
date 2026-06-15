@@ -85,7 +85,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
     dartsThrownThisTurn = 0; 
     history = [];
     
-    // FIX: Check of target-display nog bestaat in de layout voor we hem updaten
     const targetDisplay = document.getElementById('target-display');
     if (targetDisplay) {
         targetDisplay.textContent = `${targetScore} PT`;
@@ -156,7 +155,13 @@ document.getElementById('undo-btn').addEventListener('click', () => {
     updateTurnUI();
 });
 
-document.getElementById('restart-btn').addEventListener('click', () => switchScreen('setup'));
+// FIX 2: Maak het canvas netjes schoon als we opnieuw starten
+document.getElementById('restart-btn').addEventListener('click', () => {
+    switchScreen('setup');
+    const cvs = document.getElementById('confetti-canvas');
+    const ctx = cvs.getContext('2d');
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+});
 
 function handleScore(pts) {
     if(pts > 0) playSound('hit');
@@ -214,6 +219,7 @@ function switchScreen(name) {
     document.getElementById(`${name}-screen`).classList.add('active'); 
 }
 
+// FIX 1: Slimmere confetti animatie
 function fireConfetti() {
     const cvs = document.getElementById('confetti-canvas');
     const ctx = cvs.getContext('2d');
@@ -223,10 +229,15 @@ function fireConfetti() {
     const pts = [];
     const cols = ['#f44336', '#e91e63', '#2196f3', '#4CAF50', '#FFEB3B', '#FF9800'];
     
-    for(let i=0; i<150; i++) {
+    // Confetti is actief, maar we stoppen met "bijvullen" na 4 seconden
+    let keepSpawning = true;
+    setTimeout(() => { keepSpawning = false; }, 4000); 
+
+    // Meer stukjes voor een dikkere bui
+    for(let i=0; i<200; i++) {
         pts.push({ 
             x: Math.random()*cvs.width, 
-            y: Math.random()*cvs.height - cvs.height, 
+            y: Math.random()*cvs.height - cvs.height * 1.5, // Start iets hoger
             w: Math.random()*12+6, 
             h: Math.random()*12+6, 
             c: cols[Math.floor(Math.random()*cols.length)], 
@@ -241,6 +252,8 @@ function fireConfetti() {
         if (!document.getElementById('winner-screen').classList.contains('active')) return;
         ctx.clearRect(0,0,cvs.width,cvs.height);
         
+        let activeParticles = 0;
+
         pts.forEach(p => {
             ctx.save(); 
             ctx.translate(p.x, p.y); 
@@ -253,12 +266,23 @@ function fireConfetti() {
             p.x += p.dx; 
             p.rot += p.rotS;
             
+            // Als de confetti onder het scherm valt
             if (p.y > cvs.height) { 
-                p.y = -10; 
-                p.x = Math.random()*cvs.width; 
+                if (keepSpawning) {
+                    p.y = -10; 
+                    p.x = Math.random()*cvs.width; 
+                }
+            } else {
+                activeParticles++;
             }
         });
-        requestAnimationFrame(render);
+
+        // Alleen blijven tekenen als er nog confetti op het scherm is of we nog spawnen
+        if (activeParticles > 0 || keepSpawning) {
+            requestAnimationFrame(render);
+        } else {
+            ctx.clearRect(0, 0, cvs.width, cvs.height); // Maak helemaal schoon
+        }
     }
     render();
 }
