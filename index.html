@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lou's Super Darts Arcade 🎯</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
@@ -17,7 +17,7 @@
             <h1 class="arcade-title">🎮 LOU'S DARTS ARCADE 🎯</h1>
             
             <div class="setup-card">
-                <label for="target-score" class="setup-label">🎯 Tot hoeveel punten spelen we?</label>
+                <label for="target-score" class="setup-label">🎯 Tot hoeveel spelen we?</label>
                 <div class="score-selector">
                     <button type="button" class="score-adjust" onclick="adjustTarget(-5)">-</button>
                     <input type="number" id="target-score" value="30" readonly>
@@ -30,31 +30,19 @@
                 <div class="player-grid">
                     <label class="player-tile">
                         <input type="checkbox" value="Lou" checked class="player-cb">
-                        <div class="tile-content">
-                            <span class="avatar">🦖</span>
-                            <span class="name">Lou</span>
-                        </div>
+                        <div class="tile-content"><span class="avatar">🦖</span><span class="name">Lou</span></div>
                     </label>
                     <label class="player-tile">
                         <input type="checkbox" value="Mama" class="player-cb">
-                        <div class="tile-content">
-                            <span class="avatar">👩‍🦰</span>
-                            <span class="name">Mama</span>
-                        </div>
+                        <div class="tile-content"><span class="avatar">👩‍🦰</span><span class="name">Mama</span></div>
                     </label>
                     <label class="player-tile">
                         <input type="checkbox" value="Papa" class="player-cb">
-                        <div class="tile-content">
-                            <span class="avatar">👨‍🦱</span>
-                            <span class="name">Papa</span>
-                        </div>
+                        <div class="tile-content"><span class="avatar">👨‍🦱</span><span class="name">Papa</span></div>
                     </label>
                     <label class="player-tile extra-tile" id="extra-tile-label">
                         <input type="checkbox" id="extra-cb" class="player-cb">
-                        <div class="tile-content">
-                            <span class="avatar">🌟</span>
-                            <input type="text" id="extra-name" placeholder="Naam..." maxlength="10">
-                        </div>
+                        <div class="tile-content"><span class="avatar">🌟</span><input type="text" id="extra-name" placeholder="Naam..." maxlength="10"></div>
                     </label>
                 </div>
                 <p id="error-msg" class="error"></p>
@@ -89,41 +77,40 @@
                     </div>
                 </div>
 
-                <div id="players-tracks-container" class="tracks-full-width">
-                    </div>
+                <div id="players-tracks-container" class="tracks-full-width"></div>
             </div>
 
             <div class="character-grid">
                 <button class="char-card spiderman" data-points="5" data-color="#3b82f6">
-                    <div class="char-icon">🕷️🔴</div>
+                    <img src="spiderman.png" alt="Spider-Man" class="char-img">
                     <div class="char-info"><span class="char-name">Spider-Man</span><span class="char-pts">+5 PT</span></div>
                 </button>
                 <button class="char-card pokemon" data-points="4" data-color="#eab308">
-                    <div class="char-icon">⚡💛</div>
+                    <img src="pokemon.png" alt="Pokémon" class="char-img">
                     <div class="char-info"><span class="char-name">Pokémon</span><span class="char-pts">+4 PT</span></div>
                 </button>
                 <button class="char-card hotwheels" data-points="4" data-color="#2563eb">
-                    <div class="char-icon">🏎️🔥</div>
+                    <img src="hotwheels.png" alt="Hot Wheels" class="char-img">
                     <div class="char-info"><span class="char-name">Hot Wheels</span><span class="char-pts">+4 PT</span></div>
                 </button>
                 <button class="char-card sonic" data-points="4" data-color="#1d4ed8">
-                    <div class="char-icon">🦔🔵</div>
+                    <img src="sonic.png" alt="Sonic" class="char-img">
                     <div class="char-info"><span class="char-name">Sonic</span><span class="char-pts">+4 PT</span></div>
                 </button>
                 <button class="char-card belgium" data-points="3" data-color="#991b1b">
-                    <div class="char-icon">😈🇧🇪</div>
+                    <img src="belgium.png" alt="Rode Duivels" class="char-img">
                     <div class="char-info"><span class="char-name">Rode Duivels</span><span class="char-pts">+3 PT</span></div>
                 </button>
                 <button class="char-card bowser" data-points="3" data-color="#dc2626">
-                    <div class="char-icon">🐢🐢</div>
+                    <img src="Bowser.jpg" alt="Bowser" class="char-img">
                     <div class="char-info"><span class="char-name">Bowser</span><span class="char-pts">+3 PT</span></div>
                 </button>
                 <button class="char-card robinhood" data-points="3" data-color="#facc15">
-                    <div class="char-icon">🏹💚</div>
-                    <div class="char-info"><span class="char-name">Robin Hood</span><span class="char-pts">+3 PT</span></div>
+                    <img src="robinhood.png" alt="Robin Hood" class="char-img">
+                    <div class="char-info"><span class="char-name">Robin"s Hood</span><span class="char-pts">+3 PT</span></div>
                 </button>
                 <button class="char-card marioluigi" data-points="2" data-color="#16a34a">
-                    <div class="char-icon">🍄👨‍🔧</div>
+                    <img src="marioluigi.png" alt="Mario & Luigi" class="char-img">
                     <div class="char-info"><span class="char-name">Mario & Luigi</span><span class="char-pts">+2 PT</span></div>
                 </button>
             </div>
@@ -138,7 +125,7 @@
                 <span id="winner-avatar" style="font-size: 5rem;">🦖</span>
                 <h2 id="winner-name">Lou is de legende!</h2>
             </div>
-            <p class="victory-subtext">Geweldig gegooid! Jij bent de dart-kampioen.</p>
+            <p class="victory-subtext">Geweldig gegooid!</p>
             <button id="restart-btn" class="arcade-btn primary-btn">NOG EEN KEER! 🔄</button>
         </div>
     </div>
