@@ -18,7 +18,6 @@
 body {
     background-color: var(--bg-dark);
     color: var(--text-white);
-    /* Gsm scroll toelaten in plaats van hidden! */
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 100vh;
@@ -99,48 +98,79 @@ body {
 .moving-arrow { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 18px; left: 0%; transition: left 0.4s; z-index: 5; }
 .fixed-board { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 16px; z-index: 2; }
 
-/* ================= FOTO GRID (Standaard Tablet = 4 Rijen) ================= */
-.character-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; flex: 1; }
+/* ================= FOTO GRID (Ruimtelijk & Modern) ================= */
+.character-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px; 
+    flex: 1; 
+}
 
 .char-card {
-    background: var(--panel-dark);
-    border: 3px solid #334155;
+    position: relative;
+    background: #1e293b; 
+    border: none;
     border-radius: 20px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    text-align: center;
-    padding: 10px 5px;
-    box-shadow: 0 5px 0 #0f172a;
-    transition: transform 0.1s ease;
-    min-height: 120px;
+    padding: 20px 10px 15px 10px;
+    box-shadow: 0 8px 0 #0f172a;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    min-height: 140px;
 }
-.char-card:active { transform: translateY(4px); box-shadow: 0 1px 0 #0f172a; }
+
+.char-card:active { 
+    transform: translateY(6px); 
+    box-shadow: 0 2px 0 #0f172a; 
+}
+
+/* De zwevende score-badge in de hoek */
+.pts-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-family: 'Luckiest Guy';
+    font-size: 1.3rem;
+    color: white;
+    background: #ff5400;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 3px solid #0f172a;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    z-index: 10;
+}
 
 /* Styling voor de foto's */
 .char-img {
-    height: 55px; /* Foto netjes schalen */
-    width: auto;
-    max-width: 90%;
-    object-fit: contain;
-    margin-bottom: 5px;
-    border-radius: 8px; /* Maakt vierkante foto's een beetje zachter aan de hoeken */
-    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    flex-grow: 1; 
+    height: 75px; 
+    width: 100%;
+    object-fit: contain; 
+    margin-bottom: 10px;
+    filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));
 }
 
-.char-name { font-size: 1rem; font-weight: 800; color: white; line-height: 1.2; margin-bottom: 2px; }
-.char-pts { font-family: 'Luckiest Guy'; font-size: 1.4rem; color: var(--accent-neon); line-height: 1; }
+.char-name { 
+    font-size: 1.1rem; 
+    font-weight: 800; 
+    color: white; 
+    line-height: 1.1; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-.spiderman { border-color: #ef4444; background: linear-gradient(135deg, #1e293b, #1d4ed8); }
-.pokemon { border-color: #eab308; background: linear-gradient(135deg, #1e293b, #854d0e); }
-.hotwheels { border-color: #3b82f6; background: linear-gradient(135deg, #1e293b, #1e3a8a); }
-.sonic { border-color: #2563eb; background: linear-gradient(135deg, #1e293b, #172554); }
-.belgium { border-color: #fbbf24; background: linear-gradient(135deg, #1e293b, #7f1d1d); }
-.bowser { border-color: #ef4444; background: linear-gradient(135deg, #1e293b, #991b1b); }
-.robinhood { border-color: #84cc16; background: linear-gradient(135deg, #1e293b, #3f6212); }
-.marioluigi { border-color: #22c55e; background: linear-gradient(135deg, #1e293b, #14532d); }
+/* Dikke kleuraccenten aan de onderkant */
+.spiderman { border-bottom: 6px solid #ef4444; }
+.pokemon { border-bottom: 6px solid #eab308; }
+.hotwheels { border-bottom: 6px solid #3b82f6; }
+.sonic { border-bottom: 6px solid #2563eb; }
+.belgium { border-bottom: 6px solid #fbbf24; }
+.bowser { border-bottom: 6px solid #ef4444; }
+.robinhood { border-bottom: 6px solid #84cc16; }
+.marioluigi { border-bottom: 6px solid #22c55e; }
 
 /* FLOATING SCORE & VICTORY */
 .floating-score { position: fixed; font-family: 'Luckiest Guy'; font-size: 4rem; pointer-events: none; z-index: 1000; text-shadow: 3px 3px 0 #000; animation: floatUp 0.8s ease-out forwards; }
@@ -154,22 +184,22 @@ body {
 
 /* ================= GSM / SMARTPHONE ADAPTIE ================= */
 @media (max-width: 768px) {
-    /* Setup grid fixen */
     .player-grid { grid-template-columns: repeat(2, 1fr); }
-    
-    /* Zorg dat de elementen bovenaan goed onder elkaar vallen als het smal is */
     .status-bar { flex-direction: column; align-items: flex-start; gap: 15px; }
     .system-controls { width: 100%; display: flex; }
     .sys-btn { flex: 1; padding: 12px; }
     
-    /* HET BELANGRIJKSTE: Maak er 2 kolommen van op GSM */
     .character-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 15px; 
     }
     
-    /* Iets hogere kaarten en grotere afbeeldingen op GSM voor makkelijk tikken */
-    .char-card { min-height: 140px; }
-    .char-img { height: 70px; }
+    .char-card { 
+        min-height: 160px; 
+        padding: 25px 10px 15px 10px;
+    }
+    
+    .char-img { height: 90px; }
+    .pts-badge { font-size: 1.5rem; padding: 6px 12px; }
     .char-name { font-size: 1.2rem; }
-    .char-pts { font-size: 1.6rem; }
 }
